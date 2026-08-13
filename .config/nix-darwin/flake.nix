@@ -31,6 +31,7 @@
       , nix-homebrew
       , homebrew-core
       , homebrew-cask
+      , mac-app-util
       , zen-browser
       , ...
     }:
@@ -71,6 +72,59 @@
       '';
     };
 
+    cluely = pkgs.stdenv.mkDerivation rec {
+      pname = "com.cluely.app";
+      version = "latest";
+
+      src = pkgs.fetchurl {
+        url = "https://api.v2.cluely.com/desktop-download/mac/latest.dmg?glass=bisect";
+        sha256 = "sha256-OCwEsCTkr1uKumvWUR4YvjjGImgiXw/xdxb3HAZApug=";
+      };
+
+      nativeBuildInputs = [
+        pkgs.undmg
+      ];
+
+      sourceRoot = ".";
+
+      unpackPhase = ''
+        undmg $src
+      '';
+
+      installPhase = ''
+        mkdir -p $out/Applications
+        cp -R 'Cluely (New).app' $out/Applications/Cluely.app
+      '';
+    };
+
+    altserver = pkgs.stdenv.mkDerivation rec {
+      pname = "AltServer";
+      version = "latest";
+
+      src = pkgs.fetchurl {
+        url = "https://cdn.altstore.io/file/altstore/altserver.zip";
+        sha256 = "sha256-4InubJKI6Ql+NXCDlCEiakxGfOKYF7vFyE6xPzwksHY=";
+      };
+
+      nativeBuildInputs = [ pkgs.unzip ];
+      sourceRoot = ".";
+
+      dontPatch = true;
+      dontConfigure = true;
+      dontBuild = true;
+      dontFixup = true;
+      dontUpdateAutotoolsGnuConfigScripts = true;
+
+      unpackPhase = ''
+        unzip $src
+      '';
+
+      installPhase = ''
+        mkdir -p $out/Applications
+        cp -R AltServer.app $out/Applications/AltServer.app
+      '';
+    };
+
       in {
 
       system.primaryUser = username;
@@ -79,6 +133,19 @@
       # Touch ID
       security.pam.services.sudo_local.touchIdAuth = true;
       security.pam.services.sudo_local.reattach = true;
+
+      services.openssh = {
+        enable = true;
+
+        extraConfig = ''
+          PubkeyAuthentication yes
+          AuthenticationMethods publickey
+          PasswordAuthentication no
+          KbdInteractiveAuthentication no
+          PermitEmptyPasswords no
+          PermitRootLogin no
+        '';
+      };
 
       system.defaults = {
 
@@ -145,9 +212,16 @@
           cleanup = "zap";
         };
 
+        brews = [
+          "socktainer"
+          ];
+
         casks = [
           "ghostty"
           "shortcat"
+          "tunnelblick"
+          "tailscale-app"
+          "telegram-desktop"
           "obs"
           ];
 
@@ -176,9 +250,12 @@
           pkgs.stow
           pkgs.pam-reattach
 
+          pkgs.container
           pkgs.podman
           pkgs.docker
           pkgs.devpod
+        # pkgs.qemu
+        # pkgs.libvirt
 
       	  pkgs.tmux
       	  pkgs.neovim
@@ -189,12 +266,14 @@
 
           pkgs.keepassxc
           pkgs.obsidian
+          pkgs.anki-bin
           pkgs.libreoffice-bin
 
           pkgs.itsycal
           pkgs.hidden-bar
 
-          omlx-app
+
+        # omlx-app
 
          (inputs.zen-browser.packages."${hostPlatform}".beta-unwrapped.override {
            policies = {
@@ -240,11 +319,21 @@
           '';
         };
 
+      # Necessary for using flakes on this system.
       nix.settings.experimental-features = "nix-command flakes";
       nixpkgs.config.allowUnfree = true;
+    # nixpkgs.config.allowBroken = true;
+    # nixpkgs.config.allowUnsupportedSystem = true;
 
+      # Set Git commit hash for darwin-version.
       system.configurationRevision = self.rev or self.dirtyRev or null;
 
+      # Used for backwards compatibility, please read the changelog before changing.
+      # $ darwin-rebuild changelog
+      system.stateVersion = 6;
+
+      # The platform the configuration will be used on.
+      # nixpkgs.hostPlatform = "aarch64-darwin";
       nixpkgs.hostPlatform = "${hostPlatform}";
         
     };
@@ -270,11 +359,14 @@
             # Automatically migrate existing Homebrew installations
             autoMigrate = true;
 
+            # Optional: Declarative tap management
             taps = {
               "homebrew/homebrew-core" = homebrew-core;
               "homebrew/homebrew-cask" = homebrew-cask;
             };
 
+            # Optional: Enable fully-declarative tap management
+            #
             # With mutableTaps disabled, taps can no longer be added imperatively with `brew tap`.
             mutableTaps = false;
           };

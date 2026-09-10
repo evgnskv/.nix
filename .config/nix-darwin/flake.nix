@@ -161,7 +161,7 @@
 
         # Mission Control
         spaces.spans-displays = true;
-        #universalaccess.reduceMotion = true;
+        universalaccess.reduceMotion = true;
         NSGlobalDomain.NSWindowShouldDragOnGesture = true;
         NSGlobalDomain.NSAutomaticWindowAnimationsEnabled = false;
         dock.expose-group-apps = true;
@@ -187,6 +187,12 @@
         dock.wvous-bl-corner = 1;
         dock.wvous-br-corner = 1;
 
+        # Clock
+        menuExtraClock.FlashDateSeparators = true;
+        menuExtraClock.Show24Hour = true;
+        menuExtraClock.ShowDate = 2;
+        menuExtraClock.ShowDayOfWeek = false;
+
         # Typing
         NSGlobalDomain."com.apple.keyboard.fnState" = true;
         NSGlobalDomain.NSAutomaticCapitalizationEnabled = false;
@@ -196,11 +202,21 @@
         NSGlobalDomain.NSAutomaticQuoteSubstitutionEnabled = false;
         NSGlobalDomain.NSAutomaticSpellingCorrectionEnabled = false;
 
-        # Clock
-        menuExtraClock.FlashDateSeparators = true;
-        menuExtraClock.Show24Hour = true;
-        menuExtraClock.ShowDate = 2;
-        menuExtraClock.ShowDayOfWeek = false;
+        # Keyboard shortcuts
+        CustomUserPreferences = {
+          "com.apple.symbolichotkeys" = {
+            AppleSymbolicHotKeys = {
+              # Free Ctrl+Space from input source switching
+              "61" = {
+                enabled = false;
+                value = {
+                  parameters = [ 32 49 262144 ];
+                  type = "standard";
+                };
+              };
+            };
+          };
+        };
 
       };
 

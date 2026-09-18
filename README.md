@@ -17,8 +17,7 @@ https://github.com/nix-darwin/nix-darwin
 
 #### Creating folder:
 ```sh
-cd ~/.nix
-stow --no-folding -d .config -t ~/.config nix-darwin
+stow -d "$HOME/.nix" -t "$HOME/.config" .config
 ```
 
 #### Installing nix-darwin:
